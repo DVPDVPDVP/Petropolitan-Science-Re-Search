@@ -30,8 +30,10 @@ int main(int argc, char** argv)
         return -1;
     }
 
+    // Поиск внутренней точки фото на картинке.
     for (int i = SHIFT; i < inputImage.rows - SHIFT; i += SHIFT * 2) {
         for (int j = SHIFT; j < inputImage.cols - SHIFT; j += SHIFT * 2) {
+            // Поиск окна, в котором нет белых пикселей.
             bool flag = true;
             for (int y = i - SHIFT; y < i + SHIFT; y++) {
                 for (int x = j - SHIFT; x < j + SHIFT; x++) {
@@ -44,8 +46,10 @@ int main(int argc, char** argv)
                     break;
                 }
             }
-
+            
+            // Нашли внутреннюю точку, начинаем поиск границ фото.
             if (flag) {
+                // С помощью BFS формируем множество пикселей фото.
                 std::set<std::pair<int, int>> picture;
                 std::queue<std::pair<int, int>> q;
                 q.push(std::make_pair(i, j));
@@ -70,6 +74,7 @@ int main(int argc, char** argv)
                     }
                 }
 
+                // Поиск угловых точек фото.
                 std::pair<int, int> minY = { inputImage.rows + 1, 0 },
                                     maxY = { 0, 0 };
                 std::pair<int, int> minX = { 0, inputImage.cols + 1 },
@@ -89,6 +94,7 @@ int main(int argc, char** argv)
                     }
                 }
 
+                // Вычисление чторон прямоугольника
                 double alpha;
                 double AB = sqrt(static_cast<double>(
                     (minY.second - minX.second) * (minY.second - minX.second)
@@ -97,6 +103,7 @@ int main(int argc, char** argv)
                     (maxX.second - minY.second) * (maxX.second - minY.second)
                     + (maxX.first - minY.first) * (maxX.first - minY.first)));
 
+                // Вычисление угла поворота
                 if (AB <= CD) {
                     alpha = (atan(static_cast<double>(minX.second - minY.second)
                                 / static_cast<double>(minX.first - minY.first)))
@@ -112,6 +119,7 @@ int main(int argc, char** argv)
 
                 std::cout << (-1) * alpha << "\n";
 
+                // Обратный поворот изображения
                 cv::Point2f center(
                     inputImage.cols / 2.0f, inputImage.rows / 2.0f);
                 cv::Mat rotationMatrix
