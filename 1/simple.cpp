@@ -94,6 +94,11 @@ int main(int argc, char const* argv[])
     bool solved = false;
     int n = 0;
     std::cin >> n;
+    int sqn = static_cast<int>(sqrt(n));
+    if (sqn * sqn != n) {
+        std::cout << "Invalid field" << std::endl;
+        return 0;
+    }
     std::vector<std::vector<int>> field(n, std::vector<int>(n));
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
@@ -102,9 +107,6 @@ int main(int argc, char const* argv[])
     }
 
     solve(field, solved);
-    if (!solved) {
-        std::cout << "Invalid field" << std::endl;
-    }
 
     return 0;
 }

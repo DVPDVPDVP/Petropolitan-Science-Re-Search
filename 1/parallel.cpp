@@ -120,12 +120,12 @@ int correctNums(std::vector<std::vector<int>> &tmpField, std::vector<int> &corrN
 
 void solve(ThreadData data)
 {
-    // Инициализация переменных для идентификации источника и назначения сообщений MPI, а также для управления запросами и состояниями MPI.
+    // Инициализация переменных для идентификации источника и назначения сообщений MPI, управления запросами и состояниями MPI.
     int src, dest;
     MPI_Request sendReq;
     MPI_Status work, wait, other;
 
-    // Определение размеров блоков и типов данных для пользовательского типа данных MPI, представляющего 'Ceil'.
+    // Определение размеров блоков и типов данных для пользовательского типа данных MPI, представляющего ячейку.
     int blokSizes[4] = { 1, 1, 1, 1 };
     MPI_Datatype types[4] = { MPI_INT, MPI_INT, MPI_INT, MPI_INT };
     MPI_Datatype ceilType;
@@ -317,6 +317,18 @@ void solve(ThreadData data)
                 file = fopen("test1.txt", "r");
                 int n = 0;
                 fscanf(file, "%d", &n);
+                int sqn = static_cast<int>(sqrt(n));
+                if (sqn * sqn != n) {
+                    std::cout << "Invalid field" << std::endl;
+                    int complete = 0;
+                    solved = 1;
+                    for (int k = 0; k < data.sz; k++) {
+                        if (k != data.processId) {
+                            MPI_Ssend(&complete, 1, MPI_INT, k, 1, MPI_COMM_WORLD);
+                        }
+                    }
+                    return;
+                }
                 tmpField.resize(n);
                 for (auto &iter : tmpField) {
                     iter.resize(n);
@@ -382,7 +394,6 @@ void solve(ThreadData data)
                     }
                 }
 
-                // Блокировка мьютекса для безопасного доступа к общим ресурсам.
                 mutex.lock();
                 if (tmpStack == nullptr && tmpStack != stackPointer && field[0][0] == -1) {
                     // Если стек пуст, но были выполнены некоторые действия, обновить поле.
@@ -422,7 +433,6 @@ void solve(ThreadData data)
                     }
                 }
 
-                // Разблокировка мьютекса.
                 mutex.unlock();
 
                 // Обработка случая, когда не осталось доступных значений для ячейки.
@@ -508,8 +518,6 @@ void solve(ThreadData data)
             }
         }
     }
-    // Завершение потока.
-    pthread_exit(0);
 }
 
 int main(int argc, char const *argv[])
